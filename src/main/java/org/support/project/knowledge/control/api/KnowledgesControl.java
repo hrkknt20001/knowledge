@@ -17,7 +17,6 @@ import org.support.project.web.bean.Msg;
 import org.support.project.web.bean.NameId;
 import org.support.project.web.boundary.Boundary;
 import org.support.project.web.common.HttpStatus;
-import org.support.project.web.control.ApiControl;
 import org.support.project.web.control.GetApiControl;
 import org.support.project.web.control.service.Delete;
 import org.support.project.web.control.service.Get;
@@ -132,5 +131,24 @@ public class KnowledgesControl extends GetApiControl {
         }
     }
     
+    /**
+     * Popularity knowledges
+     */
+    @Get(path="api/knowledges/popularity", publishToken="")
+    public Boundary popularity() {
+    	
+    	ApiParams params = getApiParams();
+    	
+        SearchKnowledgeParam param = new SearchKnowledgeParam();
+        param.setLoginedUser(getLoginedUser());
+        param.setLimit(params.getLimit());
+        param.setOffset(params.getOffset());
+        try {
+            List<Knowledge> results = KnowledgeDataSelectLogic.get().getPopularity(param);
+            return send(HttpStatus.SC_200_OK, results);
+        } catch (Exception e) {
+            return sendError(HttpStatus.SC_500_INTERNAL_SERVER_ERROR);
+        }
+    }
     
 }

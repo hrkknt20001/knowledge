@@ -272,5 +272,42 @@ public class KnowledgeDataSelectLogic {
         }
         return results;
     }
+    /**
+     * 人気Knowledgeのデータを取得（WebAPIで返す形で）
+     * @param param
+     * @return
+     * @throws Exception
+     */
+    public List<Knowledge> getPopularity(SearchKnowledgeParam param) throws Exception {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("get popularity knowledge list. [params] " + PropertyUtil.reflectionToString(param));
+        }
+
+        List<Knowledge> results = new ArrayList<>();
+        List<KnowledgesEntity> entities = KnowledgeLogic.get().getPopularityKnowledges( 
+        		param.getLoginedUser(), 
+        		param.getOffset(),
+                param.getLimit()
+             );
+        
+        List<String> ids = new ArrayList<>();
+        for (KnowledgesEntity entity : entities) {
+            Knowledge result = conv(entity, LIST);
+            results.add(result);
+            ids.add(String.valueOf(result.getKnowledgeId()));
+        }
+        List<KnowledgesEntity> dbs = KnowledgeLogic.get().getKnowledges(ids, param.getLoginedUser());
+        Map<Long, KnowledgesEntity> idMap = new HashedMap<>();
+        for (KnowledgesEntity knowledgesEntity : dbs) {
+            idMap.put(knowledgesEntity.getKnowledgeId(), knowledgesEntity);
+        }
+        for (Knowledge knowledge : results) {
+            if (idMap.containsKey(knowledge.getKnowledgeId())) {
+                // Titleのハイライトを消す
+                knowledge.setTitle(idMap.get(knowledge.getKnowledgeId()).getTitle());
+            }
+        }
+        return results;
+    }
 
 }
